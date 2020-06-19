@@ -23,6 +23,7 @@ XX 4. generate_tile
 """
 import numpy as np
 from collections import Counter
+from itertools import groupby
 
 class game2048():
     """
@@ -118,5 +119,43 @@ class game2048():
         prior = np.cumsum(prior)/sum(counts.values())
 
         return list(sorted(counts.keys())), prior
+
+    @staticmethod
+    def move_direc(board, direction):
+        """Shift and merge all tiles of board in the given cardinal direction
+
+        Inputs:
+        board - a 2-dimensional array
+        direction - 'left', 'right', 'up', or 'down'
+        """
+        # The most basic operation is to shift and merge a single row left.
+        # Such an operation can then be applied to all rows or all columns,
+        # transposing / rotating / reflecting the board as needed, to cover
+        # all four directions (left / right / up / down).
+        def move_row_left(row):
+            def shift(row):  # squeeze non-zero elements together
+                nnz = row[row!=0]
+                pad = np.zeros(len(row) - len(nnz))
+                return np.concatenate((nnz, pad))
+            def merge(row):
+                def result(value, elements):
+                    quotient, remainder = divmod(len(list(elements)), 2)
+                    # TODO: preserve array dtype? this currently returns list
+                    return [2*value]*quotient + [value]*remainder
+                nnz = np.concatenate([result(k, g) for k, g in groupby(row)])
+                pad = np.zeros(len(row) - len(nnz))
+                return np.concatenate((nnz, pad))
+            return merge(shift(row))
+
+        def move_all_left(b): return np.apply_along_axis(move_row_left, 1, b)
+        def move_all_up(b): return np.apply_along_axis(move_row_left, 0, b)
+        func = {
+            'left': move_all_left,
+            'right': lambda b: np.fliplr(move_all_left(np.fliplr(b))),
+            'up': move_all_up,
+            'down': lambda b: np.flipud(move_all_up(np.flipud(b))),
+        }
+
+        return func[direction](board)
 
 
