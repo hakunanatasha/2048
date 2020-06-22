@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 2020.06.21
 
@@ -11,13 +13,12 @@ from itertools import product
 from tkinter import *
 from tkinter import messagebox
 
-# Game Mechanics/Aesthetics
-from gameskin import *
-from rules import game2048, moveset
-
+# Game Aesthetics (all parameter), Game Mechanics
+from constants import *
+from rules import game2048
 
 # -------------- #
-
+tf = {False: "Continue", True:"Game Done"}
 class GameGrid(Frame):
     """
     """
@@ -72,18 +73,28 @@ class GameGrid(Frame):
         key = repr(event.char)
         if key in self.commands:
             self.Game.move_tiles(self.commands[key])
-            #print(self.Game.board) # Dynamic view of the game board
+            print(self.Game.board) # Dynamic view of the game board
             #print(self.Game.score) #Dynamic view of score
+            print(tf[self.Game.game_over])
             self.update_grid()
 
     def update_grid(self):
         """Update grid cells"""
-        self.update_scoreboard()
         self.draw_cells(self.game_window, self.Game.board)
         self.update_idletasks()
+        if self.Game.game_over is True:
+            self.update_endboard()
+        else:
+            self.update_scoreboard()
 
     def update_scoreboard(self):
-        self.game_title.config(text="Score=" + str(self.Game.score),
+        self.game_title.config(text="Score=" + str(int(self.Game.score)),
+                               font=(GAME_FONT, GAME_FONT_SIZE, "bold"),
+                               bg=BACKGROUND_COLOR_GAME)
+        self.game_title.pack()
+
+    def update_endboard(self):
+        self.game_title.config(text="Game Over! Score=" + str(int(self.Game.score)),
                                font=(GAME_FONT, GAME_FONT_SIZE, "bold"),
                                bg=BACKGROUND_COLOR_GAME)
         self.game_title.pack()
@@ -118,10 +129,8 @@ class GameGrid(Frame):
             txt.pack(expand=True)
 
 
-# -------------- #
 # ------------------------------- #
-
-
+# Start the game!
 gamegrid = GameGrid()
 
 

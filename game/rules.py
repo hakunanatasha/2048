@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 """
+Authors: N. Seelam (nseelam1@gmail.com), D.K. Murakowski (murakdar@gmail.com)
+The following code allows can run a bare-bones version
+with a numpy-array scoreboard. The GUI2048.py deploys tkinter
+GUI-based play.
+
+Credit to Yangshun for color scheme parameters of the GUI: 
+https://github.com/yangshun/2048-python
+
 2020.06.21
-Todo: Make sure you cannot get a dead move
+XX 1. Make sure you cannot get a dead move
+XX 2. Initialize score board
+XX 3. Game over when all possible moves are exhausted
 
 2020.06.16
-Authors: N. Seelam (nseelam1@gmail.com), D.K. Murakowski (murakdar@gmail.com)
-
 The following is the code-base for a pythonic 2048 game.
 
 The script has the following functions:
@@ -97,8 +105,8 @@ class game2048():
             #keys, prior = self.generate_tile(self.board, self.MAX_GEN)
             self.board[pos] = keys[np.where(np.random.random() <= prior)[0][0]]
 
-        else:
-            self.game_over = True
+        #else:
+        #    self.game_over = True
 
     def move_tiles(self, direction):
         """
@@ -107,12 +115,21 @@ class game2048():
         """
         new_board = self.moveset[direction](self.board)
 
-        # Omit a dead move
+        # If the board is different after a move, update
         if (new_board != self.board).sum() > 0:
             self.score += self.move_score
             self.move_score = 0
             self.board = new_board
             self.choose_pos()
+        else:
+            self.check_all_directions()
+
+    def check_all_directions(self, directions=["up", "left", "right", "down"]):
+        """ Check Game-over status. No possible merges available """
+        boards = [self.moveset[d](self.board) for d in directions]
+        boards = [(b != self.board).sum() for b in boards]
+        if sum(boards)<1:
+            self.game_over = True
 
     def merge(self, row):
         """

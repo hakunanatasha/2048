@@ -6,7 +6,6 @@ N.Seelam Gameboard construction of 2048
 These are the sets of constants
 
 """
-from rules import moveset
 # GAME PARAMETERS
 GRID_LENGTH = 4
 MAX_POWER = 15 # Max sized tile before game won
