@@ -35,11 +35,11 @@ class GameGrid(Frame):
         self.master.geometry(BOARD_SIZE)
         self.master.configure(bg=BACKGROUND_COLOR_GAME)
 
-        # Setup the Game
-        self.game_title = Label(self.master, text="2048", fg=TITLE_COLOR)
-        self.game_title.config(font=(GAME_FONT, GAME_FONT_SIZE, "bold"),
-                               bg=BACKGROUND_COLOR_GAME)
-        self.game_title.pack()
+        # Setup the Game Scoreboard
+        self.game_title = Label(self.master, 
+                                text="Score=" + str(self.Game.score), 
+                                fg=TITLE_COLOR)
+        self.update_scoreboard()
 
         # Get the grid cells
         self.grid_cells = []
@@ -72,13 +72,21 @@ class GameGrid(Frame):
         key = repr(event.char)
         if key in self.commands:
             self.Game.move_tiles(self.commands[key])
-            print(self.Game.board)
+            #print(self.Game.board) # Dynamic view of the game board
+            #print(self.Game.score) #Dynamic view of score
             self.update_grid()
 
     def update_grid(self):
         """Update grid cells"""
+        self.update_scoreboard()
         self.draw_cells(self.game_window, self.Game.board)
         self.update_idletasks()
+
+    def update_scoreboard(self):
+        self.game_title.config(text="Score=" + str(self.Game.score),
+                               font=(GAME_FONT, GAME_FONT_SIZE, "bold"),
+                               bg=BACKGROUND_COLOR_GAME)
+        self.game_title.pack()
 
     @staticmethod
     def draw_cells(canvas, board):
