@@ -18,7 +18,7 @@ from constants import *
 from rules import game2048
 
 # -------------- #
-tf = {False: "Continue", True:"Game Done"}
+#tf = {False: "Continue", True:"Game Done"}
 class GameGrid(Frame):
     """
     """
