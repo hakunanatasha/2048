@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 2020.06.21
 Todo: Make sure you cannot get a dead move
@@ -35,9 +36,9 @@ class game2048():
     """
 
     def __init__(self, 
-                 GRID_LENGTH, 
-                 MAX_POWER, 
-                 MAX_GEN):
+                 GRID_LENGTH=4, 
+                 MAX_POWER=17, 
+                 MAX_GEN=2):
         """
         Initialize gameboard.
 
@@ -55,6 +56,12 @@ class game2048():
         self.make_gameboard(GRID_LENGTH)
         self.board[np.random.randint(GRID_LENGTH), np.random.randint(GRID_LENGTH)] = 2
 
+        # Moves
+        self.moveset = {'left': self.move_all_left,
+                        'right': lambda b: np.fliplr(self.move_all_left(np.fliplr(b))),
+                        'up': self.move_all_up,
+                        'down': lambda b: np.flipud(self.move_all_up(np.flipud(b)))}
+
     def make_gameboard(self, N=None):
         """
         Create an N x N grid for 2048.
@@ -69,6 +76,7 @@ class game2048():
         self.board = np.zeros(shape=(N, N))
         self.game_over = False
         self.score = 0
+        self.move_score = 0
 
     def choose_pos(self):
         """
@@ -97,18 +105,41 @@ class game2048():
         Given a direction (up/down/left/right)
         evaluate the board.
         """
-        new_board = moveset[direction](self.board)
+        new_board = self.moveset[direction](self.board)
 
         # Omit a dead move
         if (new_board != self.board).sum() > 0:
+            self.score += self.move_score
+            self.move_score = 0
             self.board = new_board
             self.choose_pos()
+
+    def merge(self, row):
+        """
+        Shift and merge tiles.
+        Defaults to left. The move_direc will handle
+        all cardinal directions
+        """
+        output = list(zip(*[game2048.result(k, g) for k, g in groupby(row)]))
+        nnz = np.concatenate(output[0])
+        pad = np.zeros(len(row) - len(nnz))
+        scoreval = sum(output[1])
+        self.move_score += scoreval
+        return np.concatenate((nnz, pad))
+
+    # Moves Possible
+    def move_all_left(self, row_i): return np.apply_along_axis(self.move_row_left, 1, row_i)
+
+    def move_all_up(self, row_i): return np.apply_along_axis(self.move_row_left, 0, row_i)
+
+    def move_row_left(self, row): return self.merge(game2048.shift(row))
 
     """ 
     The following methods are atomistic rules toward finding positions,
     generating tiles, and merging
     """
 
+    # Required for generating new tiles
     @staticmethod
     def find_pos(board):
         """
@@ -159,6 +190,12 @@ class game2048():
 
         return list(sorted(counts.keys())), prior
 
+    # Required for Movement
+    @staticmethod
+    def result(value, elements):
+        quotient, remainder = divmod(len(list(elements)), 2)
+        return [2*value]*quotient + [value]*remainder, 2*value*quotient
+
     @staticmethod
     def shift(row):
         """
@@ -168,33 +205,4 @@ class game2048():
         pad = np.zeros(len(row) - len(nnz))
         return np.concatenate((nnz, pad))
 
-    @staticmethod
-    def merge(row):
-        """
-        Shift and merge tiles.
-        Defaults to left. The move_direc will handle
-        all cardinal directions
-        """
-        def result(value, elements):
-            quotient, remainder = divmod(len(list(elements)), 2)
-            return [2*value]*quotient + [value]*remainder
-        nnz = np.concatenate([result(k, g) for k, g in groupby(row)])
-        pad = np.zeros(len(row) - len(nnz))
-        return np.concatenate((nnz, pad))
 
-    @staticmethod
-    def move_all_left(row_i): return np.apply_along_axis(game2048.move_row_left, 1, row_i)
-
-    @staticmethod
-    def move_all_up(row_i): return np.apply_along_axis(game2048.move_row_left, 0, row_i)
-
-    @staticmethod
-    def move_row_left(row): return game2048.merge(game2048.shift(row))
-
-
-moveset = {
-    'left': game2048.move_all_left,
-    'right': lambda b: np.fliplr(game2048.move_all_left(np.fliplr(b))),
-    'up': game2048.move_all_up,
-    'down': lambda b: np.flipud(game2048.move_all_up(np.flipud(b))),
-}
