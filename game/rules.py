@@ -46,8 +46,11 @@ class game2048():
         Game continues until self.game_outcome != None
         """
         self.GRID_LENGTH = GRID_LENGTH
+        self.MAX_POWER = MAX_POWER
+        self.MAX_GEN = MAX_GEN
         self.board = None
         self.make_gameboard(GRID_LENGTH)
+        self.board[np.random.randint(GRID_LENGTH), np.random.randint(GRID_LENGTH)] = 2
 
     def make_gameboard(self, N=None):
         """
@@ -77,7 +80,7 @@ class game2048():
         if len(idx):
             pos = idx[np.random.randint(low=0, high=len(idx))]
             keys, prior = self.generate_tile(self.board, self.MAX_GEN)
-            board[pos] = keys[np.where(np.random.random() <= prior)[0][0]]
+            self.board[pos] = keys[np.where(np.random.random() <= prior)[0][0]]
 
         else:
             self.game_outcome = 'LOSE' 

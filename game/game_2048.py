@@ -6,89 +6,104 @@ Tkinter playable 2048.
 """
 import numpy as np
 import sys
+from itertools import product
 
 from tkinter import *
 from tkinter import messagebox
 
 # Game Mechanics/Aesthetics
-from game.gameskin import *
-from game.rules import game2048, moveset
+from gameskin import *
+from rules import game2048, moveset
+
 
 # -------------- #
-# Call the mechanics of the game
-GameBoard = game2048(GRID_LENGTH=GRID_LENGTH, 
-                     MAX_POWER=MAX_POWER,
-                     MAX_GEN=MAX_GEN)
+
+class GameGrid(Frame):
+    """
+    """
+    def __init__(self):
+
+        Frame.__init__(self)
+
+        # Call the mechanics of the game
+        self.Game = game2048(GRID_LENGTH=GRID_LENGTH, 
+                             MAX_POWER=MAX_POWER,
+                             MAX_GEN=MAX_GEN)
+
+        # Set up the game layout
+        self.master.title("2048")
+        self.master.geometry(BOARD_SIZE)
+        self.master.configure(bg=BACKGROUND_COLOR_GAME)
+
+        # Setup the Game
+        self.game_title = Label(self.master, text="2048", fg=TITLE_COLOR)
+        self.game_title.config(font=(GAME_FONT, GAME_FONT_SIZE, "bold"),
+                               bg=BACKGROUND_COLOR_GAME)
+        self.game_title.pack()
+
+        # Get the grid cells
+        self.grid_cells = []
+
+        # Key bindings
+        #self.master.bind("<Key>", self.key_down)
+        #self.commands = commands
+
+        #Initialize the Grid with 1 generated tile
+
+        self.initialize_grid()
+
+        # Deploy the game!
+        self.mainloop()
+
+    def initialize_grid(self):
+        """ Create the default generated grid """
+        print("I did it.")
+        self.game_window = Frame(self.master,
+                            bg=BACKGROUND_COLOR_GAME,
+                            height=SIZE_Y,
+                            width=SIZE_X,
+                            borderwidth=0, 
+                            highlightthickness=0)
+        self.game_window.pack()
+        self.draw_cells(self.game_window, self.Game.board)
+
+
+
+    @staticmethod
+    def draw_cells(canvas, board):
+        """
+        Given the tokens on the board
+        associate the right numbers/colors
+
+        TODO: This should be done as a single pass and iterated as an apply
+        """
+        xy = list(product(range(GRID_LENGTH), range(GRID_LENGTH)))
+        # TODO: MAP APPLY
+        for indx in xy:
+            cell = Frame(canvas, 
+                         bg=BACKGROUND_COLOR_DICT[board[indx[0], indx[1]]],
+                         width=SIZE_X/GRID_LENGTH,
+                         height=SIZE_Y/ GRID_LENGTH)
+            cell.grid(row=indx[0]*int(SIZE_X/GRID_LENGTH), 
+                      column=indx[1]*int(SIZE_Y/GRID_LENGTH), 
+                      padx=GRID_PADDING,
+                      pady=GRID_PADDING)
+            cell.pack_propagate(0)
+            txt = Label(master=cell,
+                        text=TEXT_DICT[board[indx[0], indx[1]]],
+                        bg=BACKGROUND_COLOR_DICT[board[indx[0], indx[1]]],
+                        fg=TEXT_COLOR_DICT[board[indx[0], indx[1]]],
+                        justify="center",
+                        pady=2,
+                        font=(GAME_FONT, GAME_FONT_SIZE, "bold"))
+            txt.pack(expand=True)
+
 
 # -------------- #
-# Set up the game sizes
-master = Tk()
-master.title("2048")
-master.geometry(BOARD_SIZE)
-master.configure(bg=BACKGROUND_COLOR_GAME)
-
-# Set up game title
-game_title = Label(master, text="2048", fg=TITLE_COLOR)
-game_title.config(font=(GAME_FONT, GAME_FONT_SIZE, "bold"),
-                  bg=BACKGROUND_COLOR_GAME)
-game_title.pack()
-
-# Set up window-block
-game_window = Frame(master,
-                    borderwidth=0, 
-                    highlightthickness=0)
-game_window.pack()
-
-# Set up game-board background
-canvas = Canvas(game_window, 
-                height=SIZE_X, 
-                width=SIZE_Y, 
-                bg=BACKGROUND_COLOR_GAME,
-                borderwidth=0, 
-                highlightthickness=0)
-
-canvas.pack(fill=BOTH, expand=False)
-canvas.grid(row=4,column=4)
-
 # ------------------------------- #
-# Draw the empty board
 
-def draw_cells(canvas, board):
-    """
-    Initialize the board colors
-    """
-    for indx in zip(range(GRID_LENGTH),range(GRID_LENGTH)):
-        cell = Frame(canvas, 
-                     bg=BACKGROUND_COLOR_CELL_EMPTY,
-                     width=SIZE_X/GRID_LENGTH,
-                     height=SIZE_Y/ GRID_LENGTH)
-        cell.grid(row=indx[0]*int(SIZE_X/GRID_LENGTH), 
-                  column=indx[1]*int(SIZE_Y/GRID_LENGTH), 
-                  padx=GRID_PADDING,
-                  pady=GRID_PADDING)
-        cell.pack_propagate(0)
-        txt = Label(master=cell,
-                    text=,
-                    bg=BACKGROUND_COLOR_CELL_EMPTY,
-                    justify="center",
-                    pady=5,
-                    font=(GAME_FONT, GAME_FONT_SIZE, "bold"))
-        txt.pack(expand=True)
+
+gamegrid = GameGrid()
 
 
 
-draw_empty(canvas, GameBoard.board)
-
-
-## Bind the keys
-#master.bind("<Left>", moveleft)
-#master.bind("<Right>", moveRight)
-#master.bind("<Up>", moveUp)
-#master.bind("<Down>", moveDown)
-#master.bind("<a>", moveleft)
-#master.bind("<d>", moveRight)
-#master.bind("<w>", moveUp)
-#master.bind("<s>", moveDown)
-
-
-mainloop()

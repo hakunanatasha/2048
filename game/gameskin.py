@@ -6,7 +6,7 @@ N.Seelam Gameboard construction of 2048
 These are the sets of constants
 
 """
-from game.rules import moveset
+from rules import moveset
 # GAME PARAMETERS
 GRID_LENGTH = 4
 MAX_POWER = 15 # Max sized tile before game won
@@ -15,28 +15,28 @@ MAX_GEN = 2    #
 # GAME AESTHETICS
 
 # Parameters for the gameboard
-BOARD_X = 520
-BOARD_Y = 600
+BOARD_X = 600
+BOARD_Y = 620
 BOARD_SIZE = str(BOARD_X) + "x" + str(BOARD_Y)
 
 SIZE_X = 500
 SIZE_Y = 500 
-GRID_PADDING = 2
+GRID_PADDING = 5
 
 GAME_FONT = "Calibri"
+GAME_TITLE_SIZE = 50
 GAME_FONT_SIZE = 40
-TITLE_COLOR = '#000000'
+TITLE_COLOR = '#393939'
 
 BACKGROUND_COLOR_GAME = "#E4E4E4"
 
 # Cell Parameters
 #CELL_LABEL_TEXT_WIDTH  = 5
 #CELL_LABEL_TEXT_HEIGHT = 2
-#BACKGROUND_COLOR_CELL_EMPTY = "#9e948a"
 
-TEXT_DICT = {idx: str(idx) for idx in range(1,MAX_POWER)}
+TEXT_DICT = {int(2**idx): str(int(2**idx)) for idx in range(1,MAX_POWER)}
 TEXT_DICT.update({0: ""})
-BACKGROUND_COLOR_DICT = {0: "#E4E4E4",
+BACKGROUND_COLOR_DICT = {0: "#959494",
                          2: "#eee4da", 
                          4: "#ede0c8", 
                          8: "#f2b179",
@@ -54,9 +54,9 @@ BACKGROUND_COLOR_DICT = {0: "#E4E4E4",
                          32768: "#f59563", 
                          65536: "#f67c5f"}
 
-CELL_COLOR_DICT = {0: "#E4E4E4",
-                   2: "#776e65", 
-                   4: "#776e65", 
+TEXT_COLOR_DICT = {0: "#776e65", # This was the original color of 2/4
+                   2: "#696563", 
+                   4: "#696563", 
                    8: "#f9f6f2", 
                    16: "#f9f6f2",
                    32: "#f9f6f2", 
