@@ -73,9 +73,9 @@ class GameGrid(Frame):
         key = repr(event.char)
         if key in self.commands:
             self.Game.move_tiles(self.commands[key])
-            print(self.Game.board) # Dynamic view of the game board
+            #print(self.Game.board) # Dynamic view of the game board
             #print(self.Game.score) #Dynamic view of score
-            print(tf[self.Game.game_over])
+            #print(tf[self.Game.game_over])
             self.update_grid()
 
     def update_grid(self):
