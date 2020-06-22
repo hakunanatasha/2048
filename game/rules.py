@@ -1,5 +1,6 @@
 """
 2020.06.16
+Authors: N. Seelam (nseelam1@gmail.com), D.K. Murakowski (murakdar@gmail.com)
 
 The following is the code-base for a pythonic 2048 game.
 
@@ -15,9 +16,9 @@ XX 3. choose_pos
 XX 4. generate_tile
     For a chosen position, choose a value for the tile.
     Ideally, this is dynamic based on the largest tile available
-5. move_direc (left/right/up/down)
+XX 5. move_direc (left/right/up/down)
     For a cardinal direction, move all tiles in that direction as far as they can go
-6. merge_tiles
+XX 6. merge_tiles
     Tiles that are adjacent to one another will merge to create an N + N tile
 
 """
@@ -31,28 +32,37 @@ class game2048():
     """
 
     def __init__(self, 
-                 GRID_LEN=4, 
-                 MAX_POWER=17,
-                 MAX_GEN=2):
+                 GRID_LENGTH, 
+                 MAX_POWER, 
+                 MAX_GEN):
         """
         Initialize gameboard.
 
-        N - size of square dimensional gameboard
-        max_power - maximum tile possible to generate before end game
-        max_gen   - max size tile to generate [multiple of 2]
+        GRID_LEN   - size of square dimensional gameboard
+        MAX_POWER  - maximum tile possible to generate before end game
+        MAX_GEN    - max size tile to generate [multiple of 2]
+        KEYSTROKES - key strokes for the cardinal directions (and alt. bindings)
 
         Game continues until self.game_outcome != None
         """
-        self.GRID_LEN = GRID_LEN
-        self.make_gameboard(GRID_LEN)
+        self.GRID_LENGTH = GRID_LENGTH
+        self.board = None
+        self.make_gameboard(GRID_LENGTH)
 
-    def make_gameboard(self):
+    def make_gameboard(self, N=None):
         """
         Create an N x N grid for 2048.
         Standard game is a 4 x 4.
         """
-        self.board = np.zeros(shape=(self.GRID_LEN, self.GRID_LEN))
+        if self.board is not None:
+            print('Erasing board for new game.')
+
+        if N is None:
+            N = self.GRID_LENGTH
+
+        self.board = np.zeros(shape=(N, N)).astype(int)
         self.game_outcome = None
+        self.score = 0
 
     def choose_pos(self):
         """
@@ -121,41 +131,80 @@ class game2048():
         return list(sorted(counts.keys())), prior
 
     @staticmethod
-    def move_direc(board, direction):
-        """Shift and merge all tiles of board in the given cardinal direction
-
-        Inputs:
-        board - a 2-dimensional array
-        direction - 'left', 'right', 'up', or 'down'
+    def shift(row):
         """
-        # The most basic operation is to shift and merge a single row left.
-        # Such an operation can then be applied to all rows or all columns,
-        # transposing / rotating / reflecting the board as needed, to cover
-        # all four directions (left / right / up / down).
-        def move_row_left(row):
-            def shift(row):  # squeeze non-zero elements together
-                nnz = row[row!=0]
-                pad = np.zeros(len(row) - len(nnz))
-                return np.concatenate((nnz, pad))
-            def merge(row):
-                def result(value, elements):
-                    quotient, remainder = divmod(len(list(elements)), 2)
-                    # TODO: preserve array dtype? this currently returns list
-                    return [2*value]*quotient + [value]*remainder
-                nnz = np.concatenate([result(k, g) for k, g in groupby(row)])
-                pad = np.zeros(len(row) - len(nnz))
-                return np.concatenate((nnz, pad))
-            return merge(shift(row))
+        Pushes all non-zero values to the leftmost.
+        """
+        nnz = row[row!=0]
+        pad = np.zeros(len(row) - len(nnz))
+        return np.concatenate((nnz, pad))
 
-        def move_all_left(b): return np.apply_along_axis(move_row_left, 1, b)
-        def move_all_up(b): return np.apply_along_axis(move_row_left, 0, b)
-        func = {
-            'left': move_all_left,
-            'right': lambda b: np.fliplr(move_all_left(np.fliplr(b))),
-            'up': move_all_up,
-            'down': lambda b: np.flipud(move_all_up(np.flipud(b))),
-        }
+    @staticmethod
+    def merge(row):
+        """
+        Shift and merge tiles.
+        Defaults to left. The move_direc will handle
+        all cardinal directions
+        """
+        def result(value, elements):
+            quotient, remainder = divmod(len(list(elements)), 2)
+            return [2*value]*quotient + [value]*remainder
+        nnz = np.concatenate([result(k, g) for k, g in groupby(row)])
+        pad = np.zeros(len(row) - len(nnz))
+        return np.concatenate((nnz, pad))
 
-        return func[direction](board)
+    @staticmethod
+    def move_all_left(row_i): return np.apply_along_axis(move_row_left, 1, row_i)
 
+    @staticmethod
+    def move_all_up(row_i): return np.apply_along_axis(move_row_left, 0, row_i)
+
+    @staticmethod
+    def move_row_left(row): return game2048.merge(game2048.shift(row))
+
+
+moveset = {
+    'left': game2048.move_all_left,
+    'right': lambda b: np.fliplr(move_all_left(np.fliplr(b))),
+    'up': game2048.move_all_up,
+    'down': lambda b: np.flipud(move_all_up(np.flipud(b))),
+}
+
+    #@staticmethod
+    #def move_direc(board, direction):
+    #    """Shift and merge all tiles of board in the given cardinal direction
+    #
+    #    Inputs:
+    #    board - a 2-dimensional array
+    #    direction - 'left', 'right', 'up', or 'down'
+    #    """
+    #    # The most basic operation is to shift and merge a single row left.
+    #    # Such an operation can then be applied to all rows or all columns,
+    #    # transposing / rotating / reflecting the board as needed, to cover
+    #    # all four directions (left / right / up / down).
+    #    def move_row_left(row):
+    #        def shift(row):  # squeeze non-zero elements together
+    #            nnz = row[row!=0]
+    #            pad = np.zeros(len(row) - len(nnz))
+    #            return np.concatenate((nnz, pad))
+    #        def merge(row):
+    #            def result(value, elements):
+    #                quotient, remainder = divmod(len(list(elements)), 2)
+    #                # TODO: preserve array dtype? this currently returns list
+    #                return [2*value]*quotient + [value]*remainder
+    #            nnz = np.concatenate([result(k, g) for k, g in groupby(row)])
+    #            pad = np.zeros(len(row) - len(nnz))
+    #            return np.concatenate((nnz, pad))
+    #        return merge(shift(row))
+    #
+    #    def move_all_left(b): return np.apply_along_axis(move_row_left, 1, b)
+    #    def move_all_up(b): return np.apply_along_axis(move_row_left, 0, b)
+    #    func = {
+    #        'left': move_all_left,
+    #        'right': lambda b: np.fliplr(move_all_left(np.fliplr(b))),
+    #        'up': move_all_up,
+    #        'down': lambda b: np.flipud(move_all_up(np.flipud(b))),
+    #    }
+    #
+    #    return func[direction](board)
 
