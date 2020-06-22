@@ -94,18 +94,18 @@ KEY_L = "'l'"
 KEY_H = "'h'"
 
 commands = {
-    KEY_UP: moveset['up'], 
-    KEY_DOWN: moveset['down'],
-    KEY_LEFT: moveset['left'], 
-    KEY_RIGHT: moveset['right'],
-    KEY_UP_ALT: moveset['up'],
-    KEY_DOWN_ALT: moveset['down'],
-    KEY_LEFT_ALT: moveset['left'],
-    KEY_RIGHT_ALT: moveset['right'],
-    KEY_H: moveset['left'],
-    KEY_L: moveset['right'],
-    KEY_K: moveset['up'],
-    KEY_J: moveset['down'],
+    KEY_UP: 'up', 
+    KEY_DOWN: 'down',
+    KEY_LEFT: 'left', 
+    KEY_RIGHT: 'right',
+    KEY_UP_ALT: 'up',
+    KEY_DOWN_ALT: 'down',
+    KEY_LEFT_ALT: 'left',
+    KEY_RIGHT_ALT: 'right',
+    KEY_H: 'left',
+    KEY_L: 'right',
+    KEY_K: 'up',
+    KEY_J: 'down',
 }
 
 x_axis_labels = ('x1', 'x2', 'x3', 'x4')

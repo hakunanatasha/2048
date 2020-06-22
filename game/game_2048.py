@@ -45,11 +45,10 @@ class GameGrid(Frame):
         self.grid_cells = []
 
         # Key bindings
-        #self.master.bind("<Key>", self.key_down)
-        #self.commands = commands
+        self.master.bind("<Key>", self.keystroke)
+        self.commands = commands
 
         #Initialize the Grid with 1 generated tile
-
         self.initialize_grid()
 
         # Deploy the game!
@@ -57,7 +56,6 @@ class GameGrid(Frame):
 
     def initialize_grid(self):
         """ Create the default generated grid """
-        print("I did it.")
         self.game_window = Frame(self.master,
                             bg=BACKGROUND_COLOR_GAME,
                             height=SIZE_Y,
@@ -67,7 +65,20 @@ class GameGrid(Frame):
         self.game_window.pack()
         self.draw_cells(self.game_window, self.Game.board)
 
+    def keystroke(self, event):
+        """
+        Move in a direction given a keystroke.
+        """
+        key = repr(event.char)
+        if key in self.commands:
+            self.Game.move_tiles(self.commands[key])
+            print(self.Game.board)
+            self.update_grid()
 
+    def update_grid(self):
+        """Update grid cells"""
+        self.draw_cells(self.game_window, self.Game.board)
+        self.update_idletasks()
 
     @staticmethod
     def draw_cells(canvas, board):

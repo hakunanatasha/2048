@@ -1,4 +1,7 @@
 """
+2020.06.21
+Todo: Make sure you cannot get a dead move
+
 2020.06.16
 Authors: N. Seelam (nseelam1@gmail.com), D.K. Murakowski (murakdar@gmail.com)
 
@@ -63,8 +66,8 @@ class game2048():
         if N is None:
             N = self.GRID_LENGTH
 
-        self.board = np.zeros(shape=(N, N)).astype(int)
-        self.game_outcome = None
+        self.board = np.zeros(shape=(N, N))
+        self.game_over = False
         self.score = 0
 
     def choose_pos(self):
@@ -76,17 +79,35 @@ class game2048():
         If there are no available positions to generate,
         evaluate as 'lost'. 
         """
+        # Find all available positions
         idx = self.find_pos(self.board)
+
+        # If there are free spots, generate tile else quit
         if len(idx):
             pos = idx[np.random.randint(low=0, high=len(idx))]
-            keys, prior = self.generate_tile(self.board, self.MAX_GEN)
+            keys, prior = self.generate_tile_2or4(self.board)
+            #keys, prior = self.generate_tile(self.board, self.MAX_GEN)
             self.board[pos] = keys[np.where(np.random.random() <= prior)[0][0]]
 
         else:
-            self.game_outcome = 'LOSE' 
+            self.game_over = True
 
-    """ The following methods are atomistic rules toward finding positions,
-    generating tiles, and merging"""
+    def move_tiles(self, direction):
+        """
+        Given a direction (up/down/left/right)
+        evaluate the board.
+        """
+        new_board = moveset[direction](self.board)
+
+        # Omit a dead move
+        if (new_board != self.board).sum() > 0:
+            self.board = new_board
+            self.choose_pos()
+
+    """ 
+    The following methods are atomistic rules toward finding positions,
+    generating tiles, and merging
+    """
 
     @staticmethod
     def find_pos(board):
@@ -96,6 +117,11 @@ class game2048():
         """
         i, j = np.where(board == 0)
         return list(zip(i,j))
+
+    @staticmethod
+    def generate_tile_2or4(board):
+        """ Generate a prior on 2s and 4s"""
+        return [2, 4], np.array([0.8, 1])
 
     @staticmethod
     def generate_tile(board, MAX_GEN, ENSURE_24=True, p=2):
@@ -117,7 +143,7 @@ class game2048():
 
         if sum(counts.values()) == 0:
             counts[2] = 1
-            counts[4] = 1
+            counts[4] = 0.25
         else:
             Nsum = sum(counts.values())
             if ENSURE_24 is True:  
@@ -157,10 +183,10 @@ class game2048():
         return np.concatenate((nnz, pad))
 
     @staticmethod
-    def move_all_left(row_i): return np.apply_along_axis(move_row_left, 1, row_i)
+    def move_all_left(row_i): return np.apply_along_axis(game2048.move_row_left, 1, row_i)
 
     @staticmethod
-    def move_all_up(row_i): return np.apply_along_axis(move_row_left, 0, row_i)
+    def move_all_up(row_i): return np.apply_along_axis(game2048.move_row_left, 0, row_i)
 
     @staticmethod
     def move_row_left(row): return game2048.merge(game2048.shift(row))
@@ -168,46 +194,7 @@ class game2048():
 
 moveset = {
     'left': game2048.move_all_left,
-    'right': lambda b: np.fliplr(move_all_left(np.fliplr(b))),
+    'right': lambda b: np.fliplr(game2048.move_all_left(np.fliplr(b))),
     'up': game2048.move_all_up,
-    'down': lambda b: np.flipud(move_all_up(np.flipud(b))),
+    'down': lambda b: np.flipud(game2048.move_all_up(np.flipud(b))),
 }
-
-    #@staticmethod
-    #def move_direc(board, direction):
-    #    """Shift and merge all tiles of board in the given cardinal direction
-    #
-    #    Inputs:
-    #    board - a 2-dimensional array
-    #    direction - 'left', 'right', 'up', or 'down'
-    #    """
-    #    # The most basic operation is to shift and merge a single row left.
-    #    # Such an operation can then be applied to all rows or all columns,
-    #    # transposing / rotating / reflecting the board as needed, to cover
-    #    # all four directions (left / right / up / down).
-    #    def move_row_left(row):
-    #        def shift(row):  # squeeze non-zero elements together
-    #            nnz = row[row!=0]
-    #            pad = np.zeros(len(row) - len(nnz))
-    #            return np.concatenate((nnz, pad))
-    #        def merge(row):
-    #            def result(value, elements):
-    #                quotient, remainder = divmod(len(list(elements)), 2)
-    #                # TODO: preserve array dtype? this currently returns list
-    #                return [2*value]*quotient + [value]*remainder
-    #            nnz = np.concatenate([result(k, g) for k, g in groupby(row)])
-    #            pad = np.zeros(len(row) - len(nnz))
-    #            return np.concatenate((nnz, pad))
-    #        return merge(shift(row))
-    #
-    #    def move_all_left(b): return np.apply_along_axis(move_row_left, 1, b)
-    #    def move_all_up(b): return np.apply_along_axis(move_row_left, 0, b)
-    #    func = {
-    #        'left': move_all_left,
-    #        'right': lambda b: np.fliplr(move_all_left(np.fliplr(b))),
-    #        'up': move_all_up,
-    #        'down': lambda b: np.flipud(move_all_up(np.flipud(b))),
-    #    }
-    #
-    #    return func[direction](board)
-
