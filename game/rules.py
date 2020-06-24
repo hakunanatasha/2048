@@ -8,6 +8,13 @@ GUI-based play.
 Credit to Yangshun for color scheme parameters of the GUI: 
 https://github.com/yangshun/2048-python
 
+2020.06.24
+Win condition included where 2048 must be in board.
+
+2020.06.23
+Included a new function that allows exploration of a trial move
+and returns (1) the score (2) the new board associated with move
+
 2020.06.21
 XX 1. Make sure you cannot get a dead move
 XX 2. Initialize score board
@@ -61,8 +68,7 @@ class game2048():
         self.MAX_POWER = MAX_POWER
         self.MAX_GEN = MAX_GEN
         self.board = None
-        self.make_gameboard(GRID_LENGTH)
-        self.board[np.random.randint(GRID_LENGTH), np.random.randint(GRID_LENGTH)] = 2
+        self.make_gameboard()
 
         # Moves
         self.moveset = {'left': self.move_all_left,
@@ -70,21 +76,23 @@ class game2048():
                         'up': self.move_all_up,
                         'down': lambda b: np.flipud(self.move_all_up(np.flipud(b)))}
 
-    def make_gameboard(self, N=None):
+    def make_gameboard(self):
         """
         Create an N x N grid for 2048.
         Standard game is a 4 x 4.
+
+        Randomly chooses a position on the grid to generate the first (2) tile.
         """
         if self.board is not None:
             print('Erasing board for new game.')
 
-        if N is None:
-            N = self.GRID_LENGTH
-
-        self.board = np.zeros(shape=(N, N))
+        self.board = np.zeros(shape=(self.GRID_LENGTH, self.GRID_LENGTH))
+        self.board[np.random.randint(self.GRID_LENGTH), np.random.randint(self.GRID_LENGTH)] = 2
         self.game_over = False
+        self.game_win = False
         self.score = 0
         self.move_score = 0
+        self.moves = 0 # Number of moves made
 
     def choose_pos(self):
         """
@@ -112,6 +120,8 @@ class game2048():
         """
         Given a direction (up/down/left/right)
         evaluate the board.
+
+        Win condition - 2048 in board
         """
         new_board = self.moveset[direction](self.board)
 
@@ -121,12 +131,28 @@ class game2048():
             self.move_score = 0
             self.board = new_board
             self.choose_pos()
+            self.moves += 1
         else:
             self.check_all_directions()
 
+        if 2048 in new_board:
+            self.game_over = True
+            self.game_win  = True
+
+    def check_direction(self, direction):
+        """
+        Given a direction, return the possible
+        board orientation and the score associated.
+        """
+        new_board = self.moveset[direction](self.board)
+        move_score = self.move_score
+        self.move_score = 0
+        return move_score, new_board
+
     def check_all_directions(self, directions=["up", "left", "right", "down"]):
         """ Check Game-over status. No possible merges available """
-        boards = [self.moveset[d](self.board) for d in directions]
+        boards = [self.check_direction(d)[0] for d in directions]
+        #boards = [self.moveset[d](self.board) for d in directions]
         boards = [(b != self.board).sum() for b in boards]
         if sum(boards)<1:
             self.game_over = True
@@ -171,6 +197,7 @@ class game2048():
         """ Generate a prior on 2s and 4s"""
         return [2, 4], np.array([0.8, 1])
 
+    # This is an idea that is NOT implemented for tile generation > 4
     @staticmethod
     def generate_tile(board, MAX_GEN, ENSURE_24=True, p=2):
         """
@@ -181,7 +208,7 @@ class game2048():
 
         Inputs:
         board - the gameboard with current scores
-        max_power -maximum sized tile to generate
+        MAX_GEN -maximum sized tile to generate (2**[max_power-1])
         ENSURE_24 - Assure 2s and 4s are in the distribution
         p - fraction of 2s/4s in the distribution
 

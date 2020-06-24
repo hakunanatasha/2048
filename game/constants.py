@@ -8,7 +8,7 @@ These are the sets of constants
 """
 # GAME PARAMETERS
 GRID_LENGTH = 4
-MAX_POWER = 15 # Max sized tile before game won
+MAX_POWER = 12 # Max sized tile [attain the 2**MAX_POWER-1] before game won
 MAX_GEN = 2    # 
 
 # GAME AESTHETICS

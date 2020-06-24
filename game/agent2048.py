@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
 """
+2020.06.22
+Included the ability to 'remotely' play by entering in keystrokes
+self.mainloop() is a blocking call
+in order to leverage, you may need to .master.update() every iteration
+
 2020.06.21
 
 Tkinter playable 2048.
@@ -11,11 +16,10 @@ import sys
 from itertools import product
 
 from tkinter import *
-from tkinter import messagebox
 
 # Game Aesthetics (all parameter), Game Mechanics
-from constants import *
-from rules import game2048
+from game.constants import *
+from game.rules import game2048
 
 # -------------- #
 #tf = {False: "Continue", True:"Game Done"}
@@ -77,6 +81,7 @@ class GameGrid(Frame):
             #print(self.Game.score) #Dynamic view of score
             #print(tf[self.Game.game_over])
             self.update_grid()
+        #self.master.update()
 
     def update_grid(self):
         """Update grid cells"""
@@ -86,6 +91,7 @@ class GameGrid(Frame):
             self.update_endboard()
         else:
             self.update_scoreboard()
+
 
     def update_scoreboard(self):
         self.game_title.config(text="Score=" + str(int(self.Game.score)),
@@ -130,8 +136,9 @@ class GameGrid(Frame):
 
 
 # ------------------------------- #
-# Start the game!
-gamegrid = GameGrid()
+
+# For interactive play, execute the game! This can be run in terminal
+#gamegrid = GameGrid()
 
 
 
