@@ -44,15 +44,15 @@ class game2048env(gym.Env):
         """
         return self.Game.board
         
-    def step(self, action):
+    def step(self, a):
         """ Take an action provided and iterate counter """
         # Make action
+        action = params.action_dict[a]
         self.Game.move_tiles(action)
 
-        obs = self._get_observation()
-        reward = self.score
+        reward = self.Game.score
         self.current_step += 1
-        done = bool(self.current_step > self.N_episodes)
+        done = bool((self.current_step > self.episode_length) or self.Game.game_over)
         return self.Game.board, self.Game.score, done
 
     def reset(self):
