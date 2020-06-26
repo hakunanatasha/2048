@@ -107,6 +107,7 @@ commands = {
     KEY_J: 'down',
 }
 
-x_axis_labels = ('x1', 'x2', 'x3', 'x4')
-y_axis_labels = ('y1', 'y2', 'y3', 'y4')
+
+#x_axis_labels = ('x1', 'x2', 'x3', 'x4')
+#y_axis_labels = ('y1', 'y2', 'y3', 'y4')
 
