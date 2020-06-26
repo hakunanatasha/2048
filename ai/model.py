@@ -30,13 +30,34 @@ qlearn = QLearn(actions=range(env.action_space.n),
                 gamma=params.Gamma, 
                 epsilon=params.Epsilon)
 
-for epoch in range(1):
-    observation = env.reset()
-    print("Initial State\n", observation)
-    done = False
-    while not done:
-        state = observation
-        action = qlearn.chooseAction
+env.reset()
+frame0 = env._get_observation()
+frames = [] # for animation
+epochs = 0
+done = False
+while not done:
+    action = env.action_space.sample()
+    state, reward, done = env.step(action)
+    # Put each rendered frame into dict for animation
+    frames.append({
+        'state': state,
+        'action': params.action_dict[action],
+        'reward': reward
+        }
+    )
+
+    epochs += 1
+
+#for epoch in range(1):
+#    observation = env.reset()
+#    print("Initial State\n", observation)
+#    done = False
+#    while not done:
+#        state = observation
+#        action = env.action_space.sample()
+#        state, reward, done, info = env.step(action)
+
+        #action = qlearn.chooseAction(state, return_q=True)
 #frames = []
 #
 #for epoch in range(5):
