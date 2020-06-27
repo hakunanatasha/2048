@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
 """
+2020.06.25
+This is a slight variant of the gui2048, but intended for
+RL's gym to inherit.
+
 2020.06.22
 Included the ability to 'remotely' play by entering in keystrokes
 self.mainloop() is a blocking call
@@ -21,19 +25,21 @@ from tkinter import *
 from game.constants import *
 from game.rules import game2048
 
+# Timing for movies
+import time
+
 # -------------- #
 #tf = {False: "Continue", True:"Game Done"}
 class GameGrid(Frame):
     """
+    Inputs:
+    board - the orientation of the board
+    trajectory - dictionary of {step_id: [action, board, reward]}
+    dt - sleep command to update board
     """
-    def __init__(self):
+    def __init__(self, board, trajectory, dt):
 
         Frame.__init__(self)
-
-        # Call the mechanics of the game
-        self.Game = game2048(GRID_LENGTH=GRID_LENGTH, 
-                             MAX_POWER=MAX_POWER,
-                             MAX_GEN=MAX_GEN)
 
         # Set up the game layout
         self.master.title("2048")
@@ -41,25 +47,35 @@ class GameGrid(Frame):
         self.master.configure(bg=BACKGROUND_COLOR_GAME)
 
         # Setup the Game Scoreboard
+        self.scoreboard_title = {True: "Game Over! ", False: ""}
         self.game_title = Label(self.master, 
-                                text="Score=" + str(self.Game.score), 
+                                text="Score=0", 
                                 fg=TITLE_COLOR)
-        self.update_scoreboard()
-
-        # Get the grid cells
-        self.grid_cells = []
-
-        # Key bindings
-        self.master.bind("<Key>", self.keystroke)
-        self.commands = commands
+        self.update_scoreboard(score=0, 
+                               action='Start', 
+                               endboard=False)
 
         #Initialize the Grid with 1 generated tile
-        self.initialize_grid()
-
-        # Deploy the game!
+        self.initialize_grid(board)
+        self.trajectory = trajectory
+        self.run_simulation(dt=dt)
         self.mainloop()
 
-    def initialize_grid(self):
+    def run_simulation(self, dt):
+        """
+        Given a trajectory,
+        create a movie of the board
+        """
+        for epoch in self.trajectory.keys():
+            time.sleep(dt)
+            frame = self.trajectory[epoch]
+            while frame['game_over'] is False:
+                self.update_grid(frame['state'], 
+                                 frame['reward'], 
+                                 frame['action'],
+                                 frame['game_over'])
+
+    def initialize_grid(self, board):
         """ Create the default generated grid """
         self.game_window = Frame(self.master,
                             bg=BACKGROUND_COLOR_GAME,
@@ -68,39 +84,21 @@ class GameGrid(Frame):
                             borderwidth=0, 
                             highlightthickness=0)
         self.game_window.pack()
-        self.draw_cells(self.game_window, self.Game.board)
+        self.draw_cells(self.game_window, board)
 
-    def keystroke(self, event):
-        """
-        Move in a direction given a keystroke.
-        """
-        key = repr(event.char)
-        if key in self.commands:
-            self.Game.move_tiles(self.commands[key])
-            #print(self.Game.board) # Dynamic view of the game board
-            #print(self.Game.score) #Dynamic view of score
-            #print(tf[self.Game.game_over])
-            self.update_grid()
-        #self.master.update()
-
-    def update_grid(self):
+    def update_grid(self, board, score, action, game_over):
         """Update grid cells"""
-        self.draw_cells(self.game_window, self.Game.board)
+        self.draw_cells(self.game_window, board)
+        self.update_scoreboard(score=score, 
+                             action=action, 
+                             endboard=game_over)
         self.update_idletasks()
-        if self.Game.game_over is True:
-            self.update_endboard()
-        else:
-            self.update_scoreboard()
 
-
-    def update_scoreboard(self):
-        self.game_title.config(text="Score=" + str(int(self.Game.score)),
-                               font=(GAME_FONT, GAME_FONT_SIZE, "bold"),
-                               bg=BACKGROUND_COLOR_GAME)
-        self.game_title.pack()
-
-    def update_endboard(self):
-        self.game_title.config(text="Game Over! Score=" + str(int(self.Game.score)),
+    def update_scoreboard(self, score, action, endboard):
+        """ Update scoreboard to include the score, and move taken """
+        #self.score = score
+        scorettl = self.scoreboard_title[endboard] + "Score=" + str(int(score)) + ', Action:' + action
+        self.game_title.config(text=scorettl,
                                font=(GAME_FONT, GAME_FONT_SIZE, "bold"),
                                bg=BACKGROUND_COLOR_GAME)
         self.game_title.pack()
@@ -136,9 +134,6 @@ class GameGrid(Frame):
 
 
 # ------------------------------- #
-
-# For interactive play, execute the game! This can be run in terminal
-#gamegrid = GameGrid()
 
 
 

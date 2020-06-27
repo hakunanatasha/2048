@@ -21,12 +21,12 @@ import random
 # RL Package
 import gym
 from gym import spaces
+#import parameters as params
 import ai.parameters as params
 
 # Plotting
 import seaborn as sns
 import matplotlib.pyplot as plt
-get_ipython().run_line_magic('config', "InlineBackend.figure_format = 'retina'")
 
 action_dict = {0: "up", 1: "down", 2: "right", 3: "left"}
 

@@ -7,10 +7,25 @@ While there have been some interesting work on AI-techniques of 2048, they've fo
 The first step of this exploration requires a functional version of the 2048 game. I wanted to code up something that was able to dynamically visualize the decisions a machine would take when playing this game. As of 2020.06.22, the tkinter-GUI approach works.
 
 I borrowed https://github.com/yangshun/2048-python game constants.
-## 2048 GUI Game
+## 2048 Game [game/]
+
+Under this folder is the rules, constants, and GUI-variant of the game.
+
+## Reinforcement Learning [ai/]
+To make the environment, cd into gym-rna and pip install -e . in that directory.
+
+### Unit Tests [tests/]
+This is a work in progress; these are unit tests to ensure the nitty gritty details of the code work.   
 
 
 TODO:
-XX 1. Construct 2048 code [NS + DKM]
-2. Create policy
-3. RL ontop
+XX 1. Construct 2048 code [NS + DKM; Completed 2020.06.21]
+2. Reinforcement Learning 
+3. Verification
+
+
+# IDEAS:
+1. make board configurations with higher/lower valued tiles
+for equally non-optimal decisions ask how people would respond
+
+2. for higher score ask how people would respond

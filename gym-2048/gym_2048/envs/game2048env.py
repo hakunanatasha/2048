@@ -1,6 +1,9 @@
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
+from gym.envs.classic_control import rendering # omit if using tkinter
+#Build the grid
+import tkinter
 
 import game.constants as c
 from game.rules import game2048 
@@ -9,9 +12,17 @@ import ai.parameters as params
 
 class game2048env(gym.Env):
     """
-    Create a 2048-gym variant for RL
+    Create a 2048-gym variant for RL.
+
+    Modes for rendering include:
+    Human - current display/terminal
+    array - render a terminal string variant
+    gui   - render a pretty GUI-based object 
     """
-    #metadata = {'render.modes': ['human']}
+    #metadata = {
+    #    'render.modes': ['human', 'array', 'gui'],
+    #    'video.frames_per_second': 50
+    #}
 
     def __init__(self, N_episodes=params.N_episodes):
         """
@@ -32,6 +43,9 @@ class game2048env(gym.Env):
 
         #Reproducibility
         self.seed()
+
+        #Rendering
+        self.viewer = None
 
     def seed(self, seed=params.seed):
         """ Initialize random seed """
@@ -63,5 +77,11 @@ class game2048env(gym.Env):
         obs = self._get_observation()
         return obs
 
-    #def render(self, mode='human', close=False):
-    #    pass
+    def render(self, mode='gui', close=False):
+        if mode == "gui":
+    
+            if self.viewer is None:
+                viewer = rendering.Viewer(c.BOARD_X, c.BOARD_Y)
+            
+        else:
+            raise NotImplementedError

@@ -7,12 +7,20 @@ import random
 
 # RL Package
 import gym
+import sys
+from ai.agent2048 import GameGrid
 import ai.parameters as params
 from ai.rl_model import QLearn, action_dict
 
+#from ai.agent2048 import GameGrid
+#import ai.parameters as params
+#from ai.rl_model import QLearn, action_dict
+
 # Plotting
-import seaborn as sns
-import matplotlib.pyplot as plt
+#from sys import platform as sys_pf
+#if sys_pf == 'darwin':
+#    import matplotlib
+#    matplotlib.use("TkAgg")
 
 # Initialize a random seed for reproducibility
 random.seed(314159)
@@ -31,22 +39,29 @@ qlearn = QLearn(actions=range(env.action_space.n),
                 epsilon=params.Epsilon)
 
 env.reset()
-frame0 = env._get_observation()
-frames = [] # for animation
-epochs = 0
+frames = {0: {"state": env._get_observation(), 
+              "reward": 0, 
+              "action": 
+              "start", "game_over": False}}
+epochs = 1
 done = False
 while not done:
     action = env.action_space.sample()
     state, reward, done = env.step(action)
     # Put each rendered frame into dict for animation
-    frames.append({
+    frames.update({epochs: {
         'state': state,
         'action': params.action_dict[action],
-        'reward': reward
+        'reward': reward,
+        'game_over': env.Game.game_over,
         }
-    )
+    })
 
     epochs += 1
+
+traj = {idx: frames[idx] for idx in range(2)}
+
+GameGrid(frames[0]['state'], traj, 20)
 
 #for epoch in range(1):
 #    observation = env.reset()
