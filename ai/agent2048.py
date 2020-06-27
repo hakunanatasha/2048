@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 
 """
+2020.06.26
+Seems like the smart thing to do is run tkinter
+mainloop on one thread, and send keyboard commands via another.
+asyncio based on : 
+<https://stackoverflow.com/a/47920128/4865723>
+
+
 2020.06.25
 This is a slight variant of the gui2048, but intended for
 RL's gym to inherit.
@@ -20,6 +27,9 @@ import sys
 from itertools import product
 
 from tkinter import *
+import asyncio
+import threading
+import queue
 
 # Game Aesthetics (all parameter), Game Mechanics
 from game.constants import *
@@ -30,16 +40,20 @@ import time
 
 # -------------- #
 #tf = {False: "Continue", True:"Game Done"}
+
 class GameGrid(Frame):
     """
     Inputs:
     board - the orientation of the board
     trajectory - dictionary of {step_id: [action, board, reward]}
-    dt - sleep command to update board
+    dt - sleep command to update board (in milliseconds)
     """
     def __init__(self, board, trajectory, dt):
 
         Frame.__init__(self)
+
+        # Initiate threads
+        self.queue = queue.Queue()
 
         # Set up the game layout
         self.master.title("2048")
@@ -56,45 +70,50 @@ class GameGrid(Frame):
                                endboard=False)
 
         #Deploy movie
-        self.master.bind("<Key>", self.keystroke)
+        #self.master.bind("<Key>", self.keystroke)
 
         #Set up the movie
         self.trajectory = trajectory
         self.Nframes = len(trajectory)
-        self.key_iter = 0
-        self.dt = 200
+        self.dt = dt
 
         #Initialize the grid
         self.initialize_grid(board)
-        self.mainloop()
+        self.run_thread()
 
-    def keystroke(self, event):
+    def refresh_data(self):
         """
         Move in a direction given a keystroke.
         """
-        self.key_iter += 1
-        while self.key_iter < self.Nframes:
-            frame = self.trajectory[self.key_iter]
-            self.update_grid(frame['state'], 
-                             frame['reward'], 
-                             frame['action'],
-                             frame['game_over'])
-        #self.run_simulation(dt=self.dt)
+        if not self.thread.is_alive() and self.queue.empty():
+            return
 
-    def run_simulation(self, dt):
+        while not self.queue.empty():
+            time.sleep(self.dt)
+            key = self.queue.get()
+            print("Queue Worked =", key)
+            frame = self.trajectory[key] 
+            self.update_grid(
+                frame['state'], 
+                frame['reward'], 
+                frame['action'],
+                frame['game_over']
+            )
+        #self.run_simulation(dt=self.dt)
+    def run_thread(self):
         """
-        Given a trajectory,
-        create a movie of the board
-        """ 
-        for epoch in self.trajectory.keys():
-            time.sleep(dt)
-            frame = self.trajectory[epoch]
-            while frame['game_over'] is False:
-                self.update_grid(frame['state'], 
-                                 frame['reward'], 
-                                 frame['action'],
-                                 frame['game_over'])
-        #self.mainloop()
+            Button-Event-Handler starting the asyncio part in a separate
+            thread.
+        """
+        # create Thread object
+        self.thread = AsyncioThread(self.queue, self.Nframes)
+
+        #  timer to refresh the gui with data from the asyncio thread
+        self.master.after(0, self.refresh_data)
+        #self.master.after(self.dt, self.refresh_data)  # called only once!
+
+        # start the thread
+        self.thread.start()
 
     def initialize_grid(self, board):
         """ Create the default generated grid """
@@ -155,8 +174,40 @@ class GameGrid(Frame):
                         font=(GAME_FONT, GAME_FONT_SIZE, "bold"))
             txt.pack(expand=True)
 
+    #def run_simulation(self, dt):
+    #    """
+    #    Given a trajectory,
+    #    create a movie of the board
+    #    """ 
+    #    for epoch in self.trajectory.keys():
+    #        frame = self.trajectory[epoch]
+    #        while frame['game_over'] is False:
+    #            self.master.after(dt*1000,
+    #                     self.update_grid(frame['state'], 
+    #                     frame['reward'], 
+    #                     frame['action'],
+    #                     frame['game_over']))
+    #    #self.mainloop()
 
 # ------------------------------- #
 
+# Define the queue thread
+class AsyncioThread(threading.Thread):
+    def __init__(self, queue, Nframes):
+        self.asyncio_loop = asyncio.get_event_loop()
+        self.the_queue = queue
+        self.Nframes = Nframes
+        threading.Thread.__init__(self)
+
+    def run(self):
+        self.asyncio_loop.run_until_complete([
+            self.the_queue.put(k) for k in range(self.Nframes)
+        ])
+        #self.asyncio_loop.run_until_complete(self.make_queue_commands())
+
+    #async def make_queue_commands(self):
+    #    """ Assign and order to each trajectory frame """
+    #    tasks = [self.the_queue.put((k)) for k in range(self.Nframes)]
+    #    #await asyncio.wait(tasks)
 
 

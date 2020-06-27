@@ -8,9 +8,14 @@ import random
 # RL Package
 import gym
 import sys
-from ai.agent2048 import GameGrid
+from ai.agent2048 import GameGrid, AsyncioThread
 import ai.parameters as params
 from ai.rl_model import QLearn, action_dict
+
+import asyncio
+import threading
+import random
+import queue
 
 #from ai.agent2048 import GameGrid
 #import ai.parameters as params
@@ -59,9 +64,10 @@ while not done:
 
     epochs += 1
 
-traj = {idx: frames[idx] for idx in range(2)}
+traj = {idx: frames[idx] for idx in range(100)}
 
-GameGrid(frames[0]['state'], traj, 20)
+g = GameGrid(frames[0]['state'], traj, 1.5)
+g.mainloop()
 
 #for epoch in range(1):
 #    observation = env.reset()

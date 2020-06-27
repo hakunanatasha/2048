@@ -1,9 +1,9 @@
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
-from gym.envs.classic_control import rendering # omit if using tkinter
+#from gym.envs.classic_control import rendering # omit if using tkinter
 #Build the grid
-import tkinter
+import tkinter as tk
 
 import game.constants as c
 from game.rules import game2048 
