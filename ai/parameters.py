@@ -10,6 +10,6 @@ N_episodes = 100
 seed = 1234
 
 # Q-learning parameters
-Alpha = 0.1
-Gamma = 0.5
-Epsilon = 0.9
+Alpha = 0.1 # [0, 1]; importance of update
+Gamma = 0.5 # [0, 1]; 0=> greedy, 1=>long term
+Epsilon = 0.75 # Exploration (< eps) versus optimal choice (>= eps)

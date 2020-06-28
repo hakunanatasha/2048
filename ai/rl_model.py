@@ -29,6 +29,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 action_dict = {0: "up", 1: "down", 2: "right", 3: "left"}
+flatten = lambda state: tuple(state.reshape(state.shape[0]**2))
 
 class QLearn:
     def __init__(self, actions, epsilon, alpha, gamma):
@@ -47,39 +48,57 @@ class QLearn:
             Q(s, a) += alpha * (reward(s,a) + max(Q(s') - Q(s,a))            
         """
         oldv = self.q.get((state, action), None)
+
         if oldv is None:
             self.q[(state, action)] = reward
         else:
             self.q[(state, action)] = oldv + self.alpha * (value - oldv)
 
     def chooseAction(self, state, return_q=False):
-        q = [self.getQ(state, action_dict[a]) for a in self.actions]
-        maxQ = max(q)
+        """
+        Exploration v. Optimality.
 
+        If < epsilon - do a random action/explore
+        if > epsilon - choose the optimal decision
+        """
+        state = flatten(state)
+        q = [self.getQ(state, a) for a in self.actions]
+
+        # Explore (A) or choose best action (B). If multiple
+        # equally-good options exist for (B), then randomly choose one.
         if random.random() < self.epsilon:
-            minQ = min(q); mag = max(abs(minQ), abs(maxQ))
-            # add random values to all the actions, recalculate maxQ
-            q = [q[i] + mag * (random.random() - 0.5)
-                 for i in range(len(self.actions))] 
-            maxQ = max(q)
-
-        count = q.count(maxQ)
-        # In case there're several state-action max values 
-        # we select a random one among them
-        if count > 1:
-            best = [i for i in range(len(self.actions)) if q[i] == maxQ]
-            i = random.choice(best)
+            action = random.choice(self.actions)
         else:
-            best = []
-            i = q.index(maxQ)
+            qmax = [idx for idx in range(len(self.actions)) if q[idx] == max(q)]
+            action = random.choice(qmax)
 
-        action = self.actions[i]
-        print(i, action, len(best), q)
         if return_q: # if they want it, give it!
             return action, q
         return action
 
     def learn(self, state1, action1, reward, state2):
+        state1 = flatten(state1)
+        state2 = flatten(state2)
         maxqnew = max([self.getQ(state2, a) for a in self.actions])
         self.learnQ(state1, action1, reward, reward + self.gamma*maxqnew)
+
+class trainmodel:
+    """
+    """
+    def __init__(self, env, alpha, epsilon, gamma):
+        self.env = env
+        self.qlearn = QLearn(actions=range(env.action_space.n), 
+                             alpha=params.Alpha, 
+                             gamma=params.Gamma, 
+                             epsilon=params.Epsilon
+                             )
+        self.reset_env()
+        self.frames = {0: {"state": env._get_observation(), 
+                           "reward": 0, 
+                           "action": 
+                           "start", "game_over": False}}
+
+    def reset_env(self):
+        """ Re-initialize environment """
+        self.env = self.env.reset()
 
