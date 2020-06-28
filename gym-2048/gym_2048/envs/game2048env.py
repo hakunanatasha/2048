@@ -67,7 +67,7 @@ class game2048env(gym.Env):
         reward = self.Game.score
         self.current_step += 1
         done = bool((self.current_step > self.episode_length) or self.Game.game_over)
-        return self.Game.board, self.Game.score, done
+        return self.Game.board, self.Game.score, done, self.Game.score_change
 
     def reset(self):
         """ Reset the gameboard and retry the game """
