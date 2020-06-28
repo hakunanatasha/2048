@@ -91,6 +91,7 @@ class game2048():
         self.game_over = False
         self.game_win = False
         self.score = 0
+        self.score_change = 0
         self.move_score = 0
         self.moves = 0 # Number of moves made
 
@@ -128,6 +129,7 @@ class game2048():
         # If the board is different after a move, update
         if (new_board != self.board).sum() > 0:
             self.score += self.move_score
+            self.score_change = self.move_score
             self.move_score = 0
             self.board = new_board
             self.choose_pos()
