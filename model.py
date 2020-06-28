@@ -61,9 +61,9 @@ for Ntrain in range(5):
               "reward": 0, 
               "action": 
               "start", "game_over": False}}
-    #done = False
+    done = False
     #while not done:
-    for epoch in range(0, 1000):
+    while (epoch < 1e4) or (not done):
         print("Ep:", Ntrain+1, "epoch:", epoch+1)
         currState = env._get_observation()
         action = qlearn.chooseAction(currState)
