@@ -67,7 +67,8 @@ for Ntrain in range(5):
         print("Ep:", Ntrain+1, "epoch:", epoch+1)
         currState = env._get_observation()
         action = qlearn.chooseAction(currState)
-        nextState, reward, done = env.step(action)
+        # Updated state, new board score, reached 2048?, reward
+        nextState, score, done, reward = env.step(action)
         qlearn.learn(currState, action, reward, nextState)
         frames.update({epoch: {
         'state': nextState,
