@@ -114,9 +114,6 @@ class game2048():
             #keys, prior = self.generate_tile(self.board, self.MAX_GEN)
             self.board[pos] = keys[np.where(np.random.random() <= prior)[0][0]]
 
-        #else:
-        #    self.game_over = True
-
     def move_tiles(self, direction):
         """
         Given a direction (up/down/left/right)
@@ -156,7 +153,7 @@ class game2048():
         boards = [self.check_direction(d)[0] for d in directions]
         #boards = [self.moveset[d](self.board) for d in directions]
         boards = [(b != self.board).sum() for b in boards]
-        if sum(boards)<1:
+        if sum(boards) < 1:
             self.game_over = True
 
     def merge(self, row):
