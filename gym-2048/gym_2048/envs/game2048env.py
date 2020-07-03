@@ -24,7 +24,7 @@ class game2048env(gym.Env):
     #    'video.frames_per_second': 50
     #}
 
-    def __init__(self, N_episodes=params.N_episodes):
+    def __init__(self):
         """
         Initialize the 2048 game from game/rules.py
         Note, to edit constants, just change game/constants.py
@@ -32,7 +32,6 @@ class game2048env(gym.Env):
         self.Game = game2048(c.GRID_LENGTH, c.MAX_POWER, c.MAX_GEN)
         
         #RL parameters
-        self.episode_length = N_episodes
         self.resets = 0
 
         #Actions possible
@@ -64,10 +63,13 @@ class game2048env(gym.Env):
         action = params.action_dict[a]
         self.Game.move_tiles(action)
 
-        reward = self.Game.score
+        state = self.Game.board
+        reward = self.Game.score_change
+        done = self.Game.game_over
+        total_score = self.Game.score
+
         self.current_step += 1
-        done = bool((self.current_step > self.episode_length) or self.Game.game_over)
-        return self.Game.board, self.Game.score, done, self.Game.score_change
+        return state, reward, done, total_score
 
     def reset(self):
         """ Reset the gameboard and retry the game """
@@ -78,10 +80,4 @@ class game2048env(gym.Env):
         return obs
 
     def render(self, mode='gui', close=False):
-        if mode == "gui":
-    
-            if self.viewer is None:
-                viewer = rendering.Viewer(c.BOARD_X, c.BOARD_Y)
-            
-        else:
-            raise NotImplementedError
+        raise NotImplementedError
