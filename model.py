@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 """
+2020.07.03
+I'll initialize 2 types of training wherein
+(1) Train for a fixed period of epoch moves 
+(2) Train until the 2048 tile is created OR the game is over.
+
+To do: make a text file that prints the success of each episode.
+
 2020.06.27
 
 The following setup trains an RL agent
@@ -24,115 +31,113 @@ import threading
 import random
 import queue
 
-#from ai.agent2048 import GameGrid
-#import ai.parameters as params
-#from ai.rl_model import QLearn, action_dict
+# Save files
+#import gzip
+import pickle as pkl
 
-# Plotting
-#from sys import platform as sys_pf
-#if sys_pf == 'darwin':
-#    import matplotlib
-#    matplotlib.use("TkAgg")
+def run_model(env, qlearn, maxepoch=1e4, savetmp=None):
+    """
+    Training regime for models
+    that train for a fixed episodic/epoch level
 
-# Initialize a random seed for reproducibility
-random.seed(314159)
-np.random.seed(123)
+    env- pass RL environment
+    qlearn - pass Q-learning
 
-# Create the environment
-env = gym.make('gym_2048:game2048-v0', N_episodes=params.N_episodes)
-env.seed(456)
-env.action_space.seed(789)
+    maxepoch-stop training an episode after N (if None, trains until game condition met)
+    savetmp - periodically save temp files. 
+    """
+    all_frames = []
+    countr = 0
+    score = 0
 
-# Set-up learning algorithm
-qlearn = QLearn(actions=range(env.action_space.n), 
-                alpha=params.Alpha, 
-                gamma=params.Gamma, 
-                epsilon=params.Epsilon)
+    if savetmp is not None:
+        outputtxt = open(savetmp + "scores.txt", "w")
 
-# Begin training
-# --------------------- #
+    for eps in range(params.N_episodes):
+        print("Training episode = ", eps + 1)
 
-all_frames = []
-for Ntrain in range(5):
-    print("Training episode", Ntrain + 1)
-    #epoch = 0
-    env.reset()
-    frames = {0: {"state": env._get_observation(), 
+        env.reset()
+
+        frames = {0: {"state": env._get_observation(), 
               "reward": 0, 
               "action": 
               "start", "game_over": False}}
-    done = False
-    #while not done:
-    while (epoch < 1e4) or (not done):
-        print("Ep:", Ntrain+1, "epoch:", epoch+1)
-        currState = env._get_observation()
-        action = qlearn.chooseAction(currState)
-        # Updated state, new board score, reached 2048?, reward
-        nextState, score, done, reward = env.step(action)
-        qlearn.learn(currState, action, reward, nextState)
-        frames.update({epoch: {
-        'state': nextState,
-        'action': params.action_dict[action],
-        'reward': reward,
-        'game_over': env.Game.game_over}
-        })
-        #epoch += 1
-    all_frames.append(frames)
 
+        done = False
+        epoch = 0
+
+        while not done:
+            line = ["Ep:", eps+1, "epoch:", epoch+1, "Score", score, "Game status:", env.Game.game_over, "\n"]
+            outputtxt.writelines("\t".join([str(i) for i in line]))
+
+            currState = env._get_observation()
+            action = qlearn.chooseAction(currState)
+            # Updated state, new board score, reached 2048?, reward
+            nextState, reward, done, score = env.step(action)
+            qlearn.learn(currState, action, reward, nextState)
+
+            frames.update({epoch: {
+            'state': nextState,
+            'action': params.action_dict[action],
+            'reward': reward,
+            'game_over': env.Game.game_over}
+            })
+
+            # Iterate the counters
+            countr += 1
+            epoch += 1
+
+            if savetmp is not None and countr >= 100:
+                countr = 0
+
+                with open(savetmp + "qlearn_tmp.pkl", "wb") as f:
+                    pkl.dump(qlearn, f)
+
+                with open(savetmp + "states_tmp.pkl", "wb") as f:
+                    pkl.dump(all_frames, f)
+
+            if epoch >= maxepoch:
+                done = True
+
+
+        all_frames.append(frames)
+        outputtxt.writelines("\n\n")
+
+    print("All episodes completed")
+
+    qname = "qlearn_eps" + str(params.N_episodes) + ".pkl"
+    sname = "states_eps" + str(params.N_episodes) + ".pkl"
+    
+    with open(savetmp + qname, "wb") as f:
+        pkl.dump(qlearn, f)
+
+    with open(savetmp + sname, "wb") as f:
+        pkl.dump(all_frames, f)
+
+    outputtxt.close()
 # --------------------- #
 
-#env.reset()
-#frames = {0: {"state": env._get_observation(), 
-#              "reward": 0, 
-#              "action": 
-#              "start", "game_over": False}}
-#epochs = 1
-#done = False
-#while not done:
-#    action = env.action_space.sample()
-#    state, reward, done = env.step(action)
-#    # Put each rendered frame into dict for animation
-#    frames.update({epochs: {
-#        'state': state,
-#        'action': params.action_dict[action],
-#        'reward': reward,
-#        'game_over': env.Game.game_over,
-#        }
-#    })
-#
-#    epochs += 1
-#
-#traj = {idx: frames[idx] for idx in range(100)}
+if __name__ == "__main__":
 
-#g = GameGrid(frames[0]['state'], traj, 1.5)
-#g.mainloop()
+    #Save directory
+    savedir = "data/"
 
-#for epoch in range(1):
-#    observation = env.reset()
-#    print("Initial State\n", observation)
-#    done = False
-#    while not done:
-#        state = observation
-#        action = env.action_space.sample()
-#        state, reward, done, info = env.step(action)
+    # Initialize a random seed for reproducibility
+    random.seed(314159)
+    np.random.seed(123)
 
-        #action = qlearn.chooseAction(state, return_q=True)
-#frames = []
-#
-#for epoch in range(5):
-#    observation = env.reset()
-#    done = False
-#    while not done:
-#        state = tuple(observation)  # turn np.ndarray into hashable type
-#        action = qlearn.chooseAction(state)
-#        observation, reward, done, info = env.step(action)
-#        nextState = tuple(observation)  # turn np.ndarray into hashable type
-#        qlearn.learn(state, action, reward-0*env.min_reward, nextState)
-#        
-#        frames.append({
-#            'frame': env.render(mode='ansi'),
-#            'state': state,
-#            'action': action,
-#            'reward': reward-0*env.min_reward,
-#            'epoch': epoch
-#        })
+    # Create the environment
+    env = gym.make('gym_2048:game2048-v0')
+    env.seed(456)
+    env.action_space.seed(789)
+
+    # Set-up learning algorithm
+    qlearn = QLearn(actions=range(env.action_space.n), 
+                    alpha=params.Alpha, 
+                    gamma=params.Gamma, 
+                    epsilon=params.Epsilon)
+
+    run_model(env, qlearn, maxepoch=1e4, savetmp=savedir)
+
+    #g = GameGrid(frames[0]['state'], traj, 1.5)
+    #g.mainloop()
