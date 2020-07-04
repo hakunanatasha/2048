@@ -146,7 +146,7 @@ class game2048():
         new_board = self.moveset[direction](self.board)
         move_score = self.move_score
         self.move_score = 0
-        return move_score, new_board
+        return new_board, move_score
 
     def check_all_directions(self, directions=["up", "left", "right", "down"]):
         """ Check Game-over status. No possible merges available """
@@ -154,6 +154,7 @@ class game2048():
         #boards = [self.moveset[d](self.board) for d in directions]
         boards = [(b != self.board).sum() for b in boards]
         if sum(boards) < 1:
+            print("No options available.")
             self.game_over = True
 
     def merge(self, row):
