@@ -3,6 +3,9 @@
 __pycache__/
 *$py.class
 
+#Datafolders
+data/
+
 # Distribution / packaging
 *.egg-info/
 
