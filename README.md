@@ -1,31 +1,35 @@
 # Winning strategies of 2048
 
+*This is a work in progress!*
+
 The goal of this project is to explore reinforcement learning strategies on the game 2048. 2048 is a game where on a 4 x 4 grid, you have the options of moving up/down/left/right in order to merge tiles, which are canonically multiples of 2. The goal is to merge enough tiles to create the infamous 2048 tile.\\
 
-While there have been some interesting work on AI-techniques of 2048, they've focused on identifying the best possible high scores. While I am partially interested in that, I wanted to explore different reinforcement learning policies to ask the question "what do people do when faced with non-optimal decisions versus a machine"? In particular, many people play with the strategy which is to merge into an corner. There are game board designs that do not have an optimal direction to merge in the most immediate step (and there is an element of randomness in the generation of a new tile).
+While there have been some interesting work on AI-techniques of 2048, this work often focuses on identifying high score/optimal score strategies. The following implementation hopes to address this question, along with another: "how do we face non-optimal choices?". In particular, there are many board configurations where *a priori*, we may not have the optimal choice. 
 
-The first step of this exploration requires a functional version of the 2048 game. I wanted to code up something that was able to dynamically visualize the decisions a machine would take when playing this game. As of 2020.06.22, the tkinter-GUI approach works.
+As I populate this project, I will be identifying different milestones.
 
-I borrowed https://github.com/yangshun/2048-python game constants.
+At the moment, the implemented GUI version of the game works, as does a crude Q-learning approach to training. The model roughly plays 600 games/minute with Q-learning, but memory can become a problem after 44K games, as the state-dictionary can be quite enormous. 
+
 ## 2048 Game [game/]
 
-Under this folder is the rules, constants, and GUI-variant of the game.
+Under this folder is the rules, constants, and GUI-variant of the game. The following files are as such:
++ ```rules.py```: Class to construct an instance of a playable 2048
++ ```constants.py```: Parameters to visualize the gameboard
++ ```gui2048.py```: A playable version of 2048.
 
-## Reinforcement Learning [ai/]
-To make the environment, cd into gym-rna and pip install -e . in that directory.
+To play an interactive version of the game, the command ```python game/gui2048.py``` should be sufficient. 
 
-### Unit Tests [tests/]
-This is a work in progress; these are unit tests to ensure the nitty gritty details of the code work.   
+## Learning environment [gym-2048/]
+To make the environment, cd into gym-2048 and pip install -e . in that directory.
+These directories have the correct substructure to leverage gym, a python reinforcement learning tool. 
+
+## Model AI [ai/]
+This folder contains attributes to successfully train and implement a model with reinforcement learning. Currently, the only policy-training method implemented is Q-learning.
++ ```parameters.py```: parameters to train model
++ ```agent2048.py```: implementation to load environment and allow visualization of moves made
++ ```rl_model.py```: currently implemented Q-learning training objective.
 
 
-TODO:
-XX 1. Construct 2048 code [NS + DKM; Completed 2020.06.21]
-2. Reinforcement Learning 
-3. Verification
-
-
-# IDEAS:
-1. make board configurations with higher/lower valued tiles
-for equally non-optimal decisions ask how people would respond
-
-2. for higher score ask how people would respond
+## Credits
++ 2048 is a game made by Gabriele Cirulli. 
++ https://github.com/yangshun/2048-python has the appropriate color scheme/dimension game constants and employed this. 
