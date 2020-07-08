@@ -19,6 +19,8 @@ Under this folder is the rules, constants, and GUI-variant of the game. The foll
 
 To play an interactive version of the game, the command ```python game/gui2048.py``` should be sufficient. 
 
+![Example Grid](./game/gameboard.png)
+
 ## Learning environment [gym-2048/]
 To make the environment, cd into gym-2048 and pip install -e . in that directory.
 These directories have the correct substructure to leverage gym, a python reinforcement learning tool. 
