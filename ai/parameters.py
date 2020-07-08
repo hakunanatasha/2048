@@ -6,7 +6,7 @@ Parameters for the RL agent.
 action_dict = {0: "up", 1: "down", 2: "right", 3: "left"}
 
 # Number of times to play the game
-N_episodes = 1000 
+N_episodes = 100000 
 seed = 1234
 
 # Q-learning parameters

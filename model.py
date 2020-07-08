@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 """
+2020.07.05
+Reload trained q to add more training iterations
+if on dkm desktop, use hash -r
+
 2020.07.03
 I'll initialize 2 types of training wherein
 (1) Train for a fixed period of epoch moves 
@@ -35,7 +39,7 @@ import queue
 #import gzip
 import pickle as pkl
 
-def run_model(env, qlearn, maxepoch=1e4, savetmp=None):
+def run_model(env, qlearn, all_frames, maxepoch=1e4, savetmp=None, tmpsave=500):
     """
     Training regime for models
     that train for a fixed episodic/epoch level
@@ -46,20 +50,22 @@ def run_model(env, qlearn, maxepoch=1e4, savetmp=None):
     maxepoch-stop training an episode after N (if None, trains until game condition met)
     savetmp - periodically save temp files. 
     """
-    all_frames = []
     countr = 0
     score = 0
 
     if savetmp is not None:
-        outputtxt = open(savetmp + "scores.txt", "w")
+        scorefile = "_".join(["scores", str(params.Alpha), str(params.Gamma), str(params.Epsilon)])
+        outputtxt = open(savetmp + scorefile + ".csv", "w")
+        outputtxt.writelines(["Episode\tMove\tScore\tGameStatus(W/L)\t\n"])
 
     for eps in range(params.N_episodes):
-        print("Training episode = ", eps + 1)
+        print("Training episode = ", eps + 1, "/", params.N_episodes)
 
         env.reset()
 
         frames = {0: {"state": env._get_observation(), 
               "reward": 0, 
+              "total_score": 0,
               "action": 
               "start", "game_over": False}}
 
@@ -67,11 +73,12 @@ def run_model(env, qlearn, maxepoch=1e4, savetmp=None):
         epoch = 0
 
         while not done:
-            line = ["Ep:", eps+1, "epoch:", epoch+1, "Score", score, "Game status:", env.Game.game_over, "\n"]
+            line = [eps+1, epoch+1, score, env.Game.game_over, "\n"]
             outputtxt.writelines("\t".join([str(i) for i in line]))
 
             currState = env._get_observation()
             action = qlearn.chooseAction(currState)
+
             # Updated state, new board score, reached 2048?, reward
             nextState, reward, done, score = env.step(action)
             qlearn.learn(currState, action, reward, nextState)
@@ -80,20 +87,23 @@ def run_model(env, qlearn, maxepoch=1e4, savetmp=None):
             'state': nextState,
             'action': params.action_dict[action],
             'reward': reward,
+            'total_score': score,
             'game_over': env.Game.game_over}
             })
 
             # Iterate the counters
-            countr += 1
             epoch += 1
 
-            if savetmp is not None and countr >= 100:
+            if savetmp is not None and countr >= tmpsave:
+                print("Saving temporary file.")
                 countr = 0
 
-                with open(savetmp + "qlearn_tmp.pkl", "wb") as f:
+                qtmp = "_".join(["qlearn_tmp", str(params.Alpha), str(params.Gamma), str(params.Epsilon)])
+                ftmp = "_".join(["states_tmp", str(params.Alpha), str(params.Gamma), str(params.Epsilon)])
+                with open(savetmp + qtmp + ".pkl", "wb") as f:
                     pkl.dump(qlearn, f)
 
-                with open(savetmp + "states_tmp.pkl", "wb") as f:
+                with open(savetmp + ftmp + ".pkl", "wb") as f:
                     pkl.dump(all_frames, f)
 
             if epoch >= maxepoch:
@@ -101,26 +111,33 @@ def run_model(env, qlearn, maxepoch=1e4, savetmp=None):
 
 
         all_frames.append(frames)
+        countr += 1
         outputtxt.writelines("\n\n")
 
     print("All episodes completed")
 
-    qname = "qlearn_eps" + str(params.N_episodes) + ".pkl"
-    sname = "states_eps" + str(params.N_episodes) + ".pkl"
+    qname = "_".join(["qlearn", str(params.N_episodes), str(params.Alpha), str(params.Gamma), str(params.Epsilon)])
+    sname = "_".join(["states", str(params.N_episodes), str(params.Alpha), str(params.Gamma), str(params.Epsilon)])
     
-    with open(savetmp + qname, "wb") as f:
+    with open(savetmp + qname + ".pkl", "wb") as f:
         pkl.dump(qlearn, f)
 
-    with open(savetmp + sname, "wb") as f:
+    with open(savetmp + sname + ".pkl", "wb") as f:
         pkl.dump(all_frames, f)
 
     outputtxt.close()
 # --------------------- #
 
 if __name__ == "__main__":
+    
+    print("Learning Rate:", params.Alpha, " Reward scaling:", params.Gamma, " Exploration:", params.Epsilon)
 
     #Save directory
     savedir = "data/"
+
+    # Reload last qlearn, if None, restart.
+    qlearnfile = None
+    #qlearnfile = "/home/natasha/proj/2048/data/train_1000/qlearn_eps1000.pkl"
 
     # Initialize a random seed for reproducibility
     random.seed(314159)
@@ -132,12 +149,28 @@ if __name__ == "__main__":
     env.action_space.seed(789)
 
     # Set-up learning algorithm
-    qlearn = QLearn(actions=range(env.action_space.n), 
-                    alpha=params.Alpha, 
-                    gamma=params.Gamma, 
-                    epsilon=params.Epsilon)
+    if qlearnfile is None:
+        print("Learning with naive prior")
+        qlearn = QLearn(actions=range(env.action_space.n), 
+                        alpha=params.Alpha, 
+                        gamma=params.Gamma, 
+                        epsilon=params.Epsilon)
 
-    run_model(env, qlearn, maxepoch=1e4, savetmp=savedir)
+        all_frames = []
+    else:
+        print("Learning from old file=", qlearnfile)
+        #Load the previous policy
+        with open(qlearnfile, 'rb') as f:
+            qlearn = pkl.load(f)
+
+        #Load the previous history
+        framefile = qlearnfile.split('qlearn')
+        framefile = "".join([framefile[0], 'states', framefile[1]])
+        with open(framefile, 'rb') as f:
+            all_frames = pkl.load(f)
+
+
+    run_model(env, qlearn, all_frames, maxepoch=1e4, savetmp=savedir)
 
     #g = GameGrid(frames[0]['state'], traj, 1.5)
     #g.mainloop()

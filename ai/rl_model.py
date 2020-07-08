@@ -24,10 +24,6 @@ from gym import spaces
 #import parameters as params
 import ai.parameters as params
 
-# Plotting
-import seaborn as sns
-import matplotlib.pyplot as plt
-
 action_dict = {0: "up", 1: "down", 2: "right", 3: "left"}
 flatten = lambda state: tuple(state.reshape(state.shape[0]**2))
 
