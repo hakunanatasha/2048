@@ -20,7 +20,7 @@ Under this folder is the rules, constants, and GUI-variant of the game. The foll
 To play an interactive version of the game, the command ```python game/gui2048.py``` should be sufficient. 
 
 <p align="center">
-  <img src="game/gameboard.png" width="350" title="hover text">
+  <img src="./game/gameboard.png" width="350" title="Example Grid">
 </p>
 
 
