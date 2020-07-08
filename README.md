@@ -32,4 +32,4 @@ This folder contains attributes to successfully train and implement a model with
 
 ## Credits
 + 2048 is a game made by Gabriele Cirulli. 
-+ https://github.com/yangshun/2048-python has the appropriate color scheme/dimension game constants and employed this. 
++ https://github.com/yangshun/2048-python has a constants.py file that provides appropriate color, and board dimensions that I used.
